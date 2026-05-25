@@ -1,0 +1,80 @@
+:host {
+  all: initial;
+}
+
+.ytql-root {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 720px;
+  height: 440px;
+  min-width: 320px;
+  min-height: 220px;
+  background: #0f0f0f;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  resize: both;
+}
+
+.ytql-header {
+  height: 36px;
+  flex: 0 0 36px;
+  background: #1f1f1f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  cursor: move;
+  user-select: none;
+}
+
+.ytql-title {
+  font-size: 12px;
+  color: #aaa;
+  letter-spacing: 0.3px;
+}
+
+.ytql-close {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff5f57;
+  border: none;
+  cursor: pointer;
+  color: transparent;
+}
+
+.ytql-close:hover {
+  color: #4a0000;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.ytql-body {
+  flex: 1 1 auto;
+  background: #000;
+  position: relative;
+}
+
+.ytql-body iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.ytql-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}

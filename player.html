@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Quick Look</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #0f0f0f;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    .ytql-header {
+      flex: 0 0 36px;
+      background: #1f1f1f;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+    .ytql-title {
+      font-size: 12px;
+      color: #aaa;
+      letter-spacing: 0.3px;
+    }
+    .ytql-close {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ff5f57;
+      border: none;
+      cursor: pointer;
+      color: transparent;
+      -webkit-app-region: no-drag;
+      transition: color 0.1s;
+    }
+    .ytql-close:hover {
+      color: #4a0000;
+      font-size: 14px;
+      line-height: 22px;
+    }
+    .ytql-body {
+      flex: 1 1 auto;
+      background: #000;
+      position: relative;
+    }
+    .ytql-body iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    .ytql-hint {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="ytql-header">
+    <span class="ytql-title">YouTube Quick Look</span>
+    <button class="ytql-close" title="Schließen (Esc / Leertaste)">×</button>
+  </div>
+  <div class="ytql-body">
+    <span class="ytql-hint">Leertaste / Esc zum Schließen</span>
+    <iframe id="player" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="no-referrer"></iframe>
+  </div>
+  <script src="player.js"></script>
+</body>
+</html>

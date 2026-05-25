@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Build output — wird per Skript regeneriert, gehört in GitHub Releases statt ins Repo
+dist/
+
+# Editor
+.idea/
+.vscode/
+*.swp
