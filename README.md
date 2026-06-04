@@ -1,15 +1,25 @@
 # YouTube Quick Look
 
-YouTube Quick Look is a Chrome extension that opens a fast preview for YouTube links and thumbnails. Hover a supported YouTube link or thumbnail, press the configured trigger key, and close the preview with the same key or Escape.
+YouTube Quick Look is a Chrome extension that opens a fast preview for YouTube links and thumbnails. Hover a supported YouTube link or thumbnail, press the configured trigger key, and the video opens in a compact preview window. Close it with Escape.
 
 ## Features
 
 - Preview YouTube watch, short, live, embed, and youtu.be links.
-- Works on regular web pages through an in-page quick-look overlay.
-- Uses an extension player popup on YouTube pages where in-page embeds can be blocked.
-- Configurable trigger key.
+- Works on every website — search results, social media, blogs, chat apps.
+- Opens the video in a small, centered popup window that plays automatically.
+- Press Escape inside the preview window to close it instantly.
+- Plays every video, including ones whose uploader disabled embedding.
+- Configurable trigger key (default: Space).
 - Simple enable/disable toggle.
 - No analytics, accounts, remote backend, or user data sale.
+
+## How it works
+
+Because YouTube blocks its embeddable player in several contexts (error 152/153 on
+`youtube.com` and for embed-disabled videos), the preview does not use an in-page
+iframe. Instead it opens the full `youtube.com/watch` page in a small popup window.
+This plays reliably everywhere, autoplays, and supports Escape-to-close via a tiny
+URL-hash marker (`#ytql-popup`) that the content script detects inside the popup.
 
 ## Local Installation
 
@@ -20,11 +30,8 @@ YouTube Quick Look is a Chrome extension that opens a fast preview for YouTube l
 
 ## Release Package
 
-Run:
-
 ```bash
-python3 scripts/generate_store_assets.py
-zip -r dist/youtube-quick-look-1.0.0.zip manifest.json content.js popup.html popup.js preview.css player.html player.js icons
+zip -r dist/youtube-quick-look-1.0.1.zip manifest.json content.js popup.html popup.js icons -x "*.DS_Store"
 ```
 
 The ZIP file is the package to upload in the Chrome Developer Dashboard.
@@ -37,6 +44,7 @@ Store listing assets are in `store-assets/`:
 - `promo-marquee-1400x560.png`
 - `screenshot-main-1280x800.png`
 - `screenshot-popup-1280x800.png`
+- `screenshot-annotated-1280x800.png`
 
 Branding sources are in `branding/`.
 

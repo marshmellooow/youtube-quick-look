@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YouTube Quick Look",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Preview YouTube links and thumbnails with a fast keyboard-triggered quick look.",
   "permissions": ["storage"],
   "action": {
@@ -20,12 +20,6 @@
       "js": ["content.js"],
       "run_at": "document_idle",
       "all_frames": false
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["preview.css", "player.html", "player.js"],
-      "matches": ["http://*/*", "https://*/*"]
     }
   ],
   "icons": {

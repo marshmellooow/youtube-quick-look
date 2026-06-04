@@ -16,13 +16,6 @@
     return;
   }
 
-  // Auf youtube.com kann der in-page Embed-Player wegen Parent-Origin-Prüfungen
-  // scheitern. Dort nutzen wir stattdessen unsere eigene Extension-Player-Seite.
-  const IS_YOUTUBE = (() => {
-    const h = location.hostname.replace(/^www\./, "");
-    return h === "youtube.com" || h === "m.youtube.com" || h === "music.youtube.com";
-  })();
-
   const VIDEO_ID_RE = /^[a-zA-Z0-9_-]{11}$/;
 
   // Settings (vom Popup verwaltet, in chrome.storage.sync persistiert)
@@ -127,12 +120,6 @@
   document.addEventListener("mouseover", onMouseOver, true);
   document.addEventListener("mouseout", onMouseOut, true);
 
-  // --- Preview Host (Shadow DOM) ---
-  let hostEl = null;
-  let shadow = null;
-  let rootEl = null;
-  let iframeEl = null;
-
   function isEditableTarget(t) {
     if (!t) return false;
     const tag = t.tagName;
@@ -142,10 +129,14 @@
   }
 
   function isPreviewOpen() {
-    return !!hostEl || !!popupWin;
+    return !!popupWin;
   }
 
-  // --- Popup-Fallback für youtube.com ---
+  // --- Vorschau-Popup ---
+  // Wir öffnen die volle youtube.com/watch-Seite in einem kleinen Popup-Fenster.
+  // Vorteile gegenüber dem In-Page-Embed: zuverlässiges Autoplay, spielt auch
+  // embed-deaktivierte Videos, und der #ytql-popup-Marker aktiviert dort den
+  // Esc-zum-Schließen-Handler (siehe ganz oben in dieser Datei).
   let popupWin = null;
   let popupPoll = null;
 
@@ -188,123 +179,17 @@
     popupWin = null;
   }
 
-  function buildPreview(videoId) {
-    // Extension-Context kann invalidiert sein (z.B. nach Reload der Extension,
-    // während alte Content-Scripts in offenen Tabs noch laufen).
-    if (!chrome.runtime || !chrome.runtime.id) {
-      console.warn("[YT Quick Look] Extension wurde neu geladen — bitte Tab neu laden.");
-      return;
-    }
-    hostEl = document.createElement("div");
-    hostEl.id = "yt-quick-look-host";
-    hostEl.style.all = "initial";
-    hostEl.style.position = "fixed";
-    hostEl.style.top = "0";
-    hostEl.style.left = "0";
-    hostEl.style.width = "0";
-    hostEl.style.height = "0";
-    hostEl.style.zIndex = "2147483647";
-
-    shadow = hostEl.attachShadow({ mode: "closed" });
-
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = chrome.runtime.getURL("preview.css");
-    shadow.appendChild(link);
-
-    rootEl = document.createElement("div");
-    rootEl.className = "ytql-root";
-    rootEl.innerHTML = `
-      <div class="ytql-header" part="header">
-        <span class="ytql-title">YouTube Quick Look</span>
-        <button class="ytql-close" title="Schließen (Esc)">×</button>
-      </div>
-      <div class="ytql-body">
-        <span class="ytql-hint">Leertaste / Esc zum Schließen</span>
-      </div>
-    `;
-    shadow.appendChild(rootEl);
-
-    iframeEl = document.createElement("iframe");
-    iframeEl.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-    iframeEl.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
-    iframeEl.setAttribute("referrerpolicy", "no-referrer");
-    rootEl.querySelector(".ytql-body").prepend(iframeEl);
-
-    rootEl.querySelector(".ytql-close").addEventListener("click", closePreview);
-
-    const header = rootEl.querySelector(".ytql-header");
-    enableDrag(rootEl, header);
-
-    document.documentElement.appendChild(hostEl);
-
-    // Klick außerhalb: am Document hängen, aber auf Klicks außerhalb des hostEl reagieren.
-    setTimeout(() => {
-      document.addEventListener("mousedown", onOutsideClick, true);
-    }, 0);
-  }
-
-  function enableDrag(target, handle) {
-    let startX = 0, startY = 0, origLeft = 0, origTop = 0, dragging = false;
-
-    handle.addEventListener("mousedown", (e) => {
-      if (e.button !== 0) return;
-      dragging = true;
-      const rect = target.getBoundingClientRect();
-      // wechsele von transform-zentriert auf absolute left/top für Drag
-      target.style.left = rect.left + "px";
-      target.style.top = rect.top + "px";
-      target.style.transform = "none";
-      startX = e.clientX;
-      startY = e.clientY;
-      origLeft = rect.left;
-      origTop = rect.top;
-      e.preventDefault();
-    });
-
-    window.addEventListener("mousemove", (e) => {
-      if (!dragging) return;
-      target.style.left = (origLeft + e.clientX - startX) + "px";
-      target.style.top = (origTop + e.clientY - startY) + "px";
-    }, true);
-
-    window.addEventListener("mouseup", () => { dragging = false; }, true);
-  }
-
-  function closePreview() {
-    closePopup();
-    if (!hostEl) return;
-    document.removeEventListener("mousedown", onOutsideClick, true);
-    if (iframeEl) {
-      iframeEl.src = "about:blank";
-      iframeEl.remove();
-      iframeEl = null;
-    }
-    hostEl.remove();
-    hostEl = null;
-    shadow = null;
-    rootEl = null;
-  }
-
-  function onOutsideClick(e) {
-    if (!hostEl) return;
-    // Composed path: prüfen, ob hostEl in der Bubble-Kette liegt
-    const path = e.composedPath ? e.composedPath() : [];
-    if (path.includes(hostEl)) return;
-    closePreview();
-  }
-
   function matchesTrigger(e) {
     const code = settings.triggerCode || "Space";
     return e.code === code || e.key === code;
   }
 
   function onKeyDown(e) {
-    // Esc schließt immer (sofern offen)
+    // Esc schließt das Popup (sofern noch erreichbar — COOP kann die Referenz kappen)
     if (e.key === "Escape" && isPreviewOpen()) {
       e.preventDefault();
       e.stopPropagation();
-      closePreview();
+      closePopup();
       return;
     }
 
@@ -314,7 +199,7 @@
     if (isPreviewOpen()) {
       e.preventDefault();
       e.stopPropagation();
-      closePreview();
+      closePopup();
       return;
     }
 
@@ -328,11 +213,7 @@
 
     e.preventDefault();
     e.stopPropagation();
-    if (IS_YOUTUBE) {
-      openPopup(hoveredVideoId);
-    } else {
-      buildPreview(hoveredVideoId);
-    }
+    openPopup(hoveredVideoId);
   }
 
   document.addEventListener("keydown", onKeyDown, true);
